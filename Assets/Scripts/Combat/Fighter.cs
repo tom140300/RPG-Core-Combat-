@@ -96,7 +96,7 @@ namespace RPG.Combat
             timeSinceLastAttack += Time.deltaTime;
             if (target == null) return;
             if (target.IsDead()) return;
-            if (!GetIsInRange())
+            if (!GetIsInRange(target.transform))
             {
                 GetComponent<Mover>().MoveTo(target.transform.position, 1f);
             }
@@ -107,6 +107,11 @@ namespace RPG.Combat
             }
         }
 
+        private bool GetIsInRange(Transform targetTransform)
+        {
+            return Vector3.Distance(transform.position, targetTransform.position) < currentWeaponConfig.GetRange();
+        }
+
         private bool GetIsInRange()
         {
             return Vector3.Distance(transform.position, target.transform.position) < currentWeaponConfig.GetRange();
@@ -115,6 +120,12 @@ namespace RPG.Combat
         public bool CanAttack(GameObject combatTarget)
         {
             if (combatTarget == null) return false;
+            if (!GetComponent<Mover>().CanMoveTo(combatTarget.transform.position) &&
+                !GetIsInRange(combatTarget.transform))
+            {
+                return false;
+            }
+
             Health targetToTest = combatTarget.GetComponent<Health>();
             return targetToTest != null && !targetToTest.IsDead();
         }
@@ -150,6 +161,7 @@ namespace RPG.Combat
             {
                 currentWeapon.value.OnHit();
             }
+
             if (currentWeaponConfig.HasProjectile())
             {
                 currentWeaponConfig.LaunchProjectile(rightHandTransform, leftHandTransform, target, gameObject, damage);
@@ -167,7 +179,7 @@ namespace RPG.Combat
 
         public void RestoreState(object state)
         {
-            string weaponName = (string)state;
+            string weaponName = (string) state;
             WeaponConfig weaponConfig = UnityEngine.Resources.Load<WeaponConfig>(weaponName);
             EquipWeapon(weaponConfig);
         }

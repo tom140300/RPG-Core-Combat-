@@ -25,6 +25,7 @@ namespace RPG.Control
         [SerializeField] private CursorMapping[] cursorMappings = null;
         [SerializeField] float maxNavMeshProjectionDistance = 1f;//Khoảng cách chiếu NavMesh tối đa
         [SerializeField] float maxNavPathLength = 40f; // Khoảng cách tối đa có thể di chuyển
+        [SerializeField] float raycastRadius = 1f;
         private void Awake()
         {
             health = GetComponent<Health>();
@@ -65,7 +66,7 @@ namespace RPG.Control
 
         RaycastHit[] RaycastAllSorted()
         {
-            RaycastHit[] hits = Physics.RaycastAll(GetMouseRay());//Truyền một tia xuyên qua Cảnh và trả lại tất cả các lần truy cập. Lưu ý rằng thứ tự của kết quả là không xác định.
+            RaycastHit[] hits = Physics.SphereCastAll(GetMouseRay(), raycastRadius);//Truyền một tia xuyên qua Cảnh và trả lại tất cả các lần truy cập. Lưu ý rằng thứ tự của kết quả là không xác định.
             float[] distances = new float[hits.Length];
             for (int i = 0; i < hits.Length; i++)
             {
@@ -94,6 +95,7 @@ namespace RPG.Control
             bool hasHit = RaycastNavMesh(out target);
             if (hasHit)
             {
+                if (!GetComponent<Mover>().CanMoveTo(target)) return false;
                 if (Input.GetMouseButton(0)) //di chuyen den con tro
                 {
                     GetComponent<Mover>().StartMoveAction(target, 1f);
